@@ -187,6 +187,7 @@ struct adv7180_chip_info {
 
 struct adv7180_state {
 	struct v4l2_ctrl_handler ctrl_hdl;
+	struct v4l2_ctrl	*pixel_rate;
 	struct v4l2_subdev	sd;
 	struct media_pad	pad;
 	struct mutex		mutex; /* mutual excl. when accessing chip */
@@ -550,6 +551,7 @@ static const struct v4l2_ctrl_config adv7180_ctrl_fast_switch = {
 
 static int adv7180_init_controls(struct adv7180_state *state)
 {
+	s64 pixel_rate;
 	v4l2_ctrl_handler_init(&state->ctrl_hdl, 4);
 
 	v4l2_ctrl_new_std(&state->ctrl_hdl, &adv7180_ctrl_ops,
@@ -565,7 +567,10 @@ static int adv7180_init_controls(struct adv7180_state *state)
 			  V4L2_CID_HUE, ADV7180_HUE_MIN,
 			  ADV7180_HUE_MAX, 1, ADV7180_HUE_DEF);
 	v4l2_ctrl_new_custom(&state->ctrl_hdl, &adv7180_ctrl_fast_switch, NULL);
-
+	//pixel_rate = mode->vts_def * mode->hts_def * mode->max_fps;
+	pixel_rate = 720 * 576 * 60;
+	state->pixel_rate = v4l2_ctrl_new_std(&state->ctrl_hdl, NULL, V4L2_CID_PIXEL_RATE, 0, pixel_rate,
+					      1, pixel_rate);
 	state->sd.ctrl_handler = &state->ctrl_hdl;
 	if (state->ctrl_hdl.error) {
 		int err = state->ctrl_hdl.error;
@@ -667,6 +672,8 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
 {
 	struct adv7180_state *state = to_state(sd);
 	struct v4l2_mbus_framefmt *framefmt;
+	s64 pixel_rate;
+	int res;
 
 	switch (format->format.field) {
 	case V4L2_FIELD_NONE:
@@ -690,8 +697,12 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
 		framefmt = v4l2_subdev_get_try_format(sd, cfg, 0);
 		*framefmt = format->format;
 	}
-
-	return adv7180_mbus_fmt(sd, framefmt);
+	res = adv7180_mbus_fmt(sd, framefmt);
+	pixel_rate = framefmt->width * framefmt->height * 60;
+	__v4l2_ctrl_modify_range(state->pixel_rate, pixel_rate,
+				 pixel_rate, 1, pixel_rate);
+	
+	return res;
 }
 
 static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
