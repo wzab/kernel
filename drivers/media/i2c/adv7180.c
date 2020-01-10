@@ -80,8 +80,8 @@
 #define ADV7180_CTRL_IRQ_SPACE		0x20
 
 #define ADV7180_REG_PWR_MAN		0x0f
-#define ADV7180_PWR_MAN_ON		0x04
-#define ADV7180_PWR_MAN_OFF		0x24
+#define ADV7180_PWR_MAN_ON		0x00
+#define ADV7180_PWR_MAN_OFF		0x20
 #define ADV7180_PWR_MAN_RES		0x80
 
 #define ADV7180_REG_STATUS1		0x0010
@@ -443,7 +443,7 @@ static int adv7180_set_power(struct adv7180_state *state, bool on)
 		val = ADV7180_PWR_MAN_ON;
 	else
 		val = ADV7180_PWR_MAN_OFF;
-
+	adv7180_csi_write(state, 0x0f, 0x0);
 	ret = adv7180_write(state, ADV7180_REG_PWR_MAN, val);
 	if (ret)
 		return ret;
@@ -1211,7 +1211,7 @@ static int adv7180_probe(struct i2c_client *client,
 	ret = adv7180_init_controls(state);
 	if (ret)
 		goto err_unregister_vpp_client;
-
+	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
 	state->pad.flags = MEDIA_PAD_FL_SOURCE;
 	sd->entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
 	ret = media_entity_init(&sd->entity, 1, &state->pad, 0);
