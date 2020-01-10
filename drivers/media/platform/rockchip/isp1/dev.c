@@ -162,13 +162,13 @@ static int __isp_pipeline_s_isp_clk(struct rkisp1_pipeline *p)
 		v4l2_warn(sd, "No active sensor\n");
 		return -EPIPE;
 	}
-      /* WZab
+
 	ctrl = v4l2_ctrl_find(sd->ctrl_handler, V4L2_CID_PIXEL_RATE);
 	if (!ctrl) {
 		v4l2_warn(sd, "No pixel rate control in subdev\n");
 		return -EPIPE;
 	}
-       */
+
 	/* calculate data rate */
 	data_rate = v4l2_ctrl_g_ctrl_int64(ctrl) *
 		    dev->isp_sdev.in_fmt.bus_width;
