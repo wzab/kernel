@@ -552,7 +552,7 @@ static const struct v4l2_ctrl_config adv7180_ctrl_fast_switch = {
 static int adv7180_init_controls(struct adv7180_state *state)
 {
 	s64 pixel_rate;
-	v4l2_ctrl_handler_init(&state->ctrl_hdl, 4);
+	v4l2_ctrl_handler_init(&state->ctrl_hdl, 5);
 
 	v4l2_ctrl_new_std(&state->ctrl_hdl, &adv7180_ctrl_ops,
 			  V4L2_CID_BRIGHTNESS, ADV7180_BRI_MIN,

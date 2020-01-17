@@ -170,8 +170,10 @@ static int __isp_pipeline_s_isp_clk(struct rkisp1_pipeline *p)
 	}
 
 	/* calculate data rate */
+	v4l2_warn(sd, "Calculating data rate\n");
 	data_rate = v4l2_ctrl_g_ctrl_int64(ctrl) *
 		    dev->isp_sdev.in_fmt.bus_width;
+	v4l2_warn(sd, "Calculated data rate\n");
 	data_rate >>= 3;
 	do_div(data_rate, 1000 * 1000);
 
