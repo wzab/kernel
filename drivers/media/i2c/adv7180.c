@@ -579,7 +579,7 @@ static int adv7180_init_controls(struct adv7180_state *state)
 	if (state->link_freq)
 		state->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
 	//pixel_rate = mode->vts_def * mode->hts_def * mode->max_fps;
-	pixel_rate = ADV7180_LINK_FREQ_108MHZ * 2 / 16;
+	pixel_rate = ADV7180_LINK_FREQ_108MHZ * 2 / 8;
 	state->pixel_rate = v4l2_ctrl_new_std(&state->ctrl_hdl, NULL, V4L2_CID_PIXEL_RATE, 0, pixel_rate,
 					      1, pixel_rate);
 	state->sd.ctrl_handler = &state->ctrl_hdl;
@@ -619,6 +619,9 @@ static int adv7180_mbus_fmt(struct v4l2_subdev *sd,
 	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
 	fmt->width = 720;
 	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
+
+	if (state->field == V4L2_FIELD_ALTERNATE)
+		fmt->height /= 2;
 
 	return 0;
 }
@@ -688,11 +691,12 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
 
 	switch (format->format.field) {
 	case V4L2_FIELD_NONE:
-		if (!(state->chip_info->flags & ADV7180_FLAG_I2P))
-			format->format.field = V4L2_FIELD_INTERLACED;
-		break;
+		if (!(state->chip_info->flags & ADV7180_FLAG_I2P)) {
+			//format->format.field = V4L2_FIELD_ALTERNATE;
+			break;
+		}
 	default:
-		format->format.field = V4L2_FIELD_INTERLACED;
+		format->format.field = V4L2_FIELD_ALTERNATE;
 		break;
 	}
 
@@ -710,7 +714,7 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
 		framefmt = v4l2_subdev_get_try_format(sd, cfg, 0);
 		*framefmt = format->format;
 	}
-	pixel_rate = ADV7180_LINK_FREQ_108MHZ * 2 / 16;
+	pixel_rate = ADV7180_LINK_FREQ_108MHZ * 2 / 8;
 	__v4l2_ctrl_modify_range(state->pixel_rate, pixel_rate,
 				 pixel_rate, 1, pixel_rate);
 	
@@ -1200,7 +1204,7 @@ static int adv7180_probe(struct i2c_client *client,
 		return -ENOMEM;
 
 	state->client = client;
-	state->field = V4L2_FIELD_INTERLACED;
+	state->field = V4L2_FIELD_ALTERNATE;
 	state->chip_info = (struct adv7180_chip_info *)id->driver_data;
 
 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
