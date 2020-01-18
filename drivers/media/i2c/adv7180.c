@@ -80,8 +80,8 @@
 #define ADV7180_CTRL_IRQ_SPACE		0x20
 
 #define ADV7180_REG_PWR_MAN		0x0f
-#define ADV7180_PWR_MAN_ON		0x00
-#define ADV7180_PWR_MAN_OFF		0x20
+#define ADV7180_PWR_MAN_ON		0x04
+#define ADV7180_PWR_MAN_OFF		0x24
 #define ADV7180_PWR_MAN_RES		0x80
 
 #define ADV7180_REG_STATUS1		0x0010
@@ -170,7 +170,7 @@
 
 #define V4L2_CID_ADV_FAST_SWITCH	(V4L2_CID_USER_ADV7180_BASE + 0x00)
 
-#define ADV7180_LINK_FREQ_108MHZ		108000000
+#define ADV7180_LINK_FREQ_108MHZ	108000000
 static const s64 link_freq_menu_items[] = {
 	ADV7180_LINK_FREQ_108MHZ
 };
@@ -450,7 +450,7 @@ static int adv7180_set_power(struct adv7180_state *state, bool on)
 		val = ADV7180_PWR_MAN_ON;
 	else
 		val = ADV7180_PWR_MAN_OFF;
-	adv7180_csi_write(state, 0x0f, 0x0);
+
 	ret = adv7180_write(state, ADV7180_REG_PWR_MAN, val);
 	if (ret)
 		return ret;
@@ -579,7 +579,7 @@ static int adv7180_init_controls(struct adv7180_state *state)
 	if (state->link_freq)
 		state->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
 	//pixel_rate = mode->vts_def * mode->hts_def * mode->max_fps;
-	pixel_rate = 720 * 576 * 60;
+	pixel_rate = ADV7180_LINK_FREQ_108MHZ * 2 / 16;
 	state->pixel_rate = v4l2_ctrl_new_std(&state->ctrl_hdl, NULL, V4L2_CID_PIXEL_RATE, 0, pixel_rate,
 					      1, pixel_rate);
 	state->sd.ctrl_handler = &state->ctrl_hdl;
@@ -615,7 +615,7 @@ static int adv7180_mbus_fmt(struct v4l2_subdev *sd,
 {
 	struct adv7180_state *state = to_state(sd);
 
-	fmt->code = MEDIA_BUS_FMT_YUYV8_2X8;
+	fmt->code = MEDIA_BUS_FMT_UYVY8_2X8;
 	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
 	fmt->width = 720;
 	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
@@ -684,7 +684,7 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
 	struct adv7180_state *state = to_state(sd);
 	struct v4l2_mbus_framefmt *framefmt;
 	s64 pixel_rate;
-	int res;
+	int ret;
 
 	switch (format->format.field) {
 	case V4L2_FIELD_NONE:
@@ -695,6 +695,8 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
 		format->format.field = V4L2_FIELD_INTERLACED;
 		break;
 	}
+
+	ret = adv7180_mbus_fmt(sd, &format->format);
 
 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
 		framefmt = &format->format;
@@ -708,12 +710,11 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
 		framefmt = v4l2_subdev_get_try_format(sd, cfg, 0);
 		*framefmt = format->format;
 	}
-	res = adv7180_mbus_fmt(sd, framefmt);
-	pixel_rate = framefmt->width * framefmt->height * 60;
+	pixel_rate = ADV7180_LINK_FREQ_108MHZ * 2 / 16;
 	__v4l2_ctrl_modify_range(state->pixel_rate, pixel_rate,
 				 pixel_rate, 1, pixel_rate);
 	
-	return res;
+	return ret;
 }
 
 static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
@@ -1235,7 +1236,7 @@ static int adv7180_probe(struct i2c_client *client,
 		goto err_unregister_vpp_client;
 	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
 	state->pad.flags = MEDIA_PAD_FL_SOURCE;
-	sd->entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
+	//sd->entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER; //WZab
 	ret = media_entity_init(&sd->entity, 1, &state->pad, 0);
 	if (ret)
 		goto err_free_ctrl;
