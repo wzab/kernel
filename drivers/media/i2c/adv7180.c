@@ -170,6 +170,11 @@
 
 #define V4L2_CID_ADV_FAST_SWITCH	(V4L2_CID_USER_ADV7180_BASE + 0x00)
 
+#define ADV7180_LINK_FREQ_108MHZ		108000000
+static const s64 link_freq_menu_items[] = {
+	ADV7180_LINK_FREQ_108MHZ
+};
+
 struct adv7180_state;
 
 #define ADV7180_FLAG_RESET_POWERED	BIT(0)
@@ -188,6 +193,7 @@ struct adv7180_chip_info {
 struct adv7180_state {
 	struct v4l2_ctrl_handler ctrl_hdl;
 	struct v4l2_ctrl	*pixel_rate;
+	struct v4l2_ctrl	*link_freq;
 	struct v4l2_subdev	sd;
 	struct media_pad	pad;
 	struct mutex		mutex; /* mutual excl. when accessing chip */
@@ -567,6 +573,11 @@ static int adv7180_init_controls(struct adv7180_state *state)
 			  V4L2_CID_HUE, ADV7180_HUE_MIN,
 			  ADV7180_HUE_MAX, 1, ADV7180_HUE_DEF);
 	v4l2_ctrl_new_custom(&state->ctrl_hdl, &adv7180_ctrl_fast_switch, NULL);
+	state->link_freq = v4l2_ctrl_new_int_menu(&state->ctrl_hdl, NULL,
+						   V4L2_CID_LINK_FREQ,
+						   0, 0, link_freq_menu_items);
+	if (state->link_freq)
+		state->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
 	//pixel_rate = mode->vts_def * mode->hts_def * mode->max_fps;
 	pixel_rate = 720 * 576 * 60;
 	state->pixel_rate = v4l2_ctrl_new_std(&state->ctrl_hdl, NULL, V4L2_CID_PIXEL_RATE, 0, pixel_rate,
