@@ -853,6 +853,10 @@ static int adv7182_init(struct adv7180_state *state)
 
 	adv7180_write(state, 0x0013, 0x00);
 
+	// Added by WZab
+	state->chip_info->select_input(state,ADV7182_INPUT_CVBS_AIN1);
+	//
+
 	return 0;
 }
 
