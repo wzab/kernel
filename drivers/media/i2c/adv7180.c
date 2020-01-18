@@ -170,9 +170,9 @@
 
 #define V4L2_CID_ADV_FAST_SWITCH	(V4L2_CID_USER_ADV7180_BASE + 0x00)
 
-#define ADV7180_LINK_FREQ_216MHZ	216000000
+#define ADV7180_LINK_FREQ_108MHZ	108000000
 static const s64 link_freq_menu_items[] = {
-	ADV7180_LINK_FREQ_216MHZ
+	ADV7180_LINK_FREQ_108MHZ
 };
 
 struct adv7180_state;
@@ -579,7 +579,7 @@ static int adv7180_init_controls(struct adv7180_state *state)
 	if (state->link_freq)
 		state->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
 	//pixel_rate = mode->vts_def * mode->hts_def * mode->max_fps;
-	pixel_rate = ADV7180_LINK_FREQ_216MHZ * 2 / 16;
+	pixel_rate = ADV7180_LINK_FREQ_108MHZ * 2 / 16;
 	state->pixel_rate = v4l2_ctrl_new_std(&state->ctrl_hdl, NULL, V4L2_CID_PIXEL_RATE, 0, pixel_rate,
 					      1, pixel_rate);
 	state->sd.ctrl_handler = &state->ctrl_hdl;
@@ -714,7 +714,7 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
 		framefmt = v4l2_subdev_get_try_format(sd, cfg, 0);
 		*framefmt = format->format;
 	}
-	pixel_rate = ADV7180_LINK_FREQ_216MHZ * 2 / 16;
+	pixel_rate = ADV7180_LINK_FREQ_108MHZ * 2 / 16;
 	__v4l2_ctrl_modify_range(state->pixel_rate, pixel_rate,
 				 pixel_rate, 1, pixel_rate);
 	
