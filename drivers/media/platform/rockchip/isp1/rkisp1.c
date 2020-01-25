@@ -440,6 +440,7 @@ static int rkisp1_isp_start(struct rkisp1_device *dev)
 
 	/* Activate MIPI */
 	if (sensor->mbus.type == V4L2_MBUS_CSI2) {
+		printk(KERN_ALERT "Activating MIPI");
 		val = readl(base + CIF_MIPI_CTRL);
 		writel(val | CIF_MIPI_CTRL_OUTPUT_ENA, base + CIF_MIPI_CTRL);
 	}

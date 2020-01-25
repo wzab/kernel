@@ -454,30 +454,6 @@ static int adv7180_set_power(struct adv7180_state *state, bool on)
 	ret = adv7180_write(state, ADV7180_REG_PWR_MAN, val);
 	if (ret)
 		return ret;
-	//Added by WZab - sending of pattern
-	if(on) {
-	adv7180_write(state,0x000C,0x37); //Force Free-run mode
-	adv7180_write(state,0x0002,0x84); //Force standard to PAL
-	adv7180_write(state,0x0014,0x11); //Set Free-run pattern to color bars
-	adv7180_write(state,0x0003,0x4E); //ADI Required Write
-	adv7180_write(state,0x0004,0x57); //Power-up INTRQ pin
-	adv7180_write(state,0x0013,0x00); //Enable INTRQ output driver
-	adv7180_write(state,0x0017,0x41); //select SH1
-	adv7180_write(state,0x001D,0xC0); //Tri-State LLC output driver
-	adv7180_write(state,0x0052,0xCD); //ADI Required Write
-	adv7180_write(state,0x0080,0x51); //ADI Required Write
-	adv7180_write(state,0x0081,0x51); //ADI Required Write
-	adv7180_write(state,0x0082,0x68); //ADI Required Write
-	adv7180_write(state,0x00FE,0x88); //Set CSI Map Address
-	adv7180_csi_write(state,0x00DE,0x02); //Power up MIPI D-PHY
-	adv7180_csi_write(state,0x00D2,0xF7); //ADI Required Write
-	adv7180_csi_write(state,0x00D8,0x65); //ADI Required Write
-	adv7180_csi_write(state,0x00E0,0x09); //ADI Required Write
-	adv7180_csi_write(state,0x002C,0x00); //ADI Required Write
-	adv7180_csi_write(state,0x0000,0x00); //Power up MIPI CSI-2 Tx
-	return 0;
-	}
-	//
 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
 		if (on) {
 			adv7180_csi_write(state, 0xDE, 0x02);
