@@ -755,7 +755,7 @@ static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
 	struct adv7180_state *state = to_state(sd);
 
 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
-		cfg->type = V4L2_MBUS_CSI2_DPHY;
+		cfg->type = V4L2_MBUS_CSI2;
 		cfg->flags = V4L2_MBUS_CSI2_1_LANE |
 				V4L2_MBUS_CSI2_CHANNEL_0 |
 				V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
@@ -779,6 +779,7 @@ static int adv7180_get_skip_frames(struct v4l2_subdev *sd, u32 *frames)
 	return 0;
 }
 
+/* Commented out by WZab, as unused functions are errors
 static int adv7180_g_pixelaspect(struct v4l2_subdev *sd, struct v4l2_fract *aspect)
 {
 	struct adv7180_state *state = to_state(sd);
@@ -793,7 +794,7 @@ static int adv7180_g_pixelaspect(struct v4l2_subdev *sd, struct v4l2_fract *aspe
 
 	return 0;
 }
-
+*/
 static int adv7180_g_tvnorms(struct v4l2_subdev *sd, v4l2_std_id *norm)
 {
 	*norm = V4L2_STD_ALL;
@@ -842,7 +843,7 @@ static const struct v4l2_subdev_video_ops adv7180_video_ops = {
 	.g_input_status = adv7180_g_input_status,
 	.s_routing = adv7180_s_routing,
 	.g_mbus_config = adv7180_g_mbus_config,
-	.g_pixelaspect = adv7180_g_pixelaspect,
+	//WZab .g_pixelaspect = adv7180_g_pixelaspect,
 	.g_tvnorms = adv7180_g_tvnorms,
 	.s_stream = adv7180_s_stream,
 };
@@ -1326,14 +1327,14 @@ static int adv7180_probe(struct i2c_client *client,
 	}
 
 	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
-		state->csi_client = i2c_new_dummy_device(client->adapter,
+		state->csi_client = i2c_new_dummy(client->adapter,
 				ADV7180_DEFAULT_CSI_I2C_ADDR);
 		if (IS_ERR(state->csi_client))
 			return PTR_ERR(state->csi_client);
 	}
 
 	if (state->chip_info->flags & ADV7180_FLAG_I2P) {
-		state->vpp_client = i2c_new_dummy_device(client->adapter,
+		state->vpp_client = i2c_new_dummy(client->adapter,
 				ADV7180_DEFAULT_VPP_I2C_ADDR);
 		if (IS_ERR(state->vpp_client)) {
 			ret = PTR_ERR(state->vpp_client);
@@ -1358,8 +1359,8 @@ static int adv7180_probe(struct i2c_client *client,
 		goto err_unregister_vpp_client;
 
 	state->pad.flags = MEDIA_PAD_FL_SOURCE;
-	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
-	ret = media_entity_pads_init(&sd->entity, 1, &state->pad);
+	sd->entity.flags = MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
+	ret = media_entity_init(&sd->entity, 1, &state->pad, 0);
 	if (ret)
 		goto err_free_ctrl;
 
