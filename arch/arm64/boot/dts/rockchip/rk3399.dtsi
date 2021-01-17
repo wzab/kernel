@@ -73,6 +73,8 @@
 		i2c6 = &i2c6;
 		i2c7 = &i2c7;
 		i2c8 = &i2c8;
+		spi1 = &spi1;
+		spi5 = &spi5;
 		serial0 = &uart0;
 		serial1 = &uart1;
 		serial2 = &uart2;
