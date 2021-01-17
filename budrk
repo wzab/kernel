@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+export ARCH=arm64
+export CROSS_COMPILE=/usr/local/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
+make clean
+make -j8
+
+export build_id="$1"             # make sure it's big enough so that our kernel is the newest.
+export lv="-$build_id-rockchip"
+export kv=$(make kernelversion)
+export debv="$kv$lv"
+
+make  bindeb-pkg -j8    LOCALVERSION=$lv    KDEB_PKGVERSION=$debv
+
