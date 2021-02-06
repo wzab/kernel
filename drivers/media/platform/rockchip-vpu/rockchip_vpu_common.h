@@ -471,8 +471,8 @@ extern int debug;
 #define vpu_debug(level, fmt, args...)				\
 	do {							\
 		if (debug & BIT(level))				\
-			pr_debug("%s:%d: " fmt,	                \
-				 __func__, __LINE__, ##args);	\
+			pr_debug("%s:%ld: " fmt,	                \
+				 __func__, (long) __LINE__, ##args);	\
 	} while (0)
 
 #define vpu_debug_enter()	vpu_debug(5, "enter\n")
